@@ -1,0 +1,668 @@
+---
+title: "Commands for taxonomic analysis (16S rRNA gene) of Pachnoda butana gut"
+output: html_notebook
+---
+
+```{r}
+rm (list = ls())
+```
+
+# 16S
+
+## 12 parts Pachnoda butana gut
+
+```{r}
+library(phyloseq)
+physeqObjest <- import_biom("../qiime2/table-with-taxonomy-json2.biom",
+                            refseqArgs=NULL, parseFunction = parse_taxonomy_default, 
+                            parallel=FALSE)
+```
+
+```{r}
+# METADATA
+mapfile = read.csv("./metadata.csv", header = TRUE, sep=",")
+samples = mapfile[,1]
+rownames(mapfile) = samples
+mapfile = mapfile[,2:length(colnames(mapfile))]
+
+colnames(otu_table(physeqObjest))
+rownames(mapfile)
+
+ord = match(colnames(otu_table(physeqObjest)), rownames(mapfile), )
+
+mapfile = mapfile[ord,]
+sampledata = sample_data(mapfile)
+physeq1 = merge_phyloseq(physeqObjest, sampledata)
+sample_sums(physeq1)
+```
+```{r}
+physeq1 = subset_taxa(physeq1, (Rank1 !="d__Eukaryota") | is.na(Rank1))
+physeq1 = subset_taxa(physeq1, (Rank2 !="p__Vertebrata") | is.na(Rank2))
+physeq1 = subset_taxa(physeq1, (Rank5 !="f__Mitochondria") | is.na(Rank5))
+physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
+sample_sums(physeq1)
+```
+
+### Alpha-diversity
+
+```{r}
+new_order = c('F1', 'F2', 'M1', 'M2', 'M3', 'H1', 'H2.1', 'H2.2', 'H2.3', 'H3', 'H4', 'H5')
+library(ggplot2)
+library(RColorBrewer)
+library(dplyr)
+library(ggpubr)
+p = plot_richness(rarefy_even_depth(physeq1, rngseed = 711), x="SampleName", color = "Area", measures=c("Observed", "Shannon", "Simpson")) + xlab("") + ylab("") # + geom_boxplot(alpha = .4, position=position_dodge(1)) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_x_discrete(limits = new_order)
+p = p + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_x_discrete(limits = new_order)
+p = p +geom_point(size = 3)
+
+alpha_div = p + scale_color_manual(values = c('#6cb895', '#B97A95', '#F6AE99', '#f0c36e'))
+alpha_div = p + scale_color_manual(values = c('#CEB992', '#73937E', '#8c86a3', '#db7551'))
+alpha_div$data$Area
+ASV_P1 = subset(alpha_div$data, Area %in% c('P1'))
+ASV_P1 = subset(ASV_P1, variable %in% c('Observed'))
+ASV_P2 = subset(alpha_div$data, Area %in% c('P2'))
+ASV_P2 = subset(ASV_P2, variable %in% c('Observed'))
+ASV_P3 = subset(alpha_div$data, Area %in% c('P3'))
+ASV_P3 = subset(ASV_P3, variable %in% c('Observed'))
+ASV_P4 = subset(alpha_div$data, Area %in% c('P4'))
+ASV_P4 = subset(ASV_P4, variable %in% c('Observed'))
+stderror_function <- function(a) sd(a) / sqrt(length(a))
+mean_function <- function(a) sum(a) / length(a)
+
+stderror <- stderror_function(ASV_P1$value)
+mean <- mean_function(ASV_P1$value)
+```
+
+
+#### Are there significant differences between sample types?
+
+```{r echo=FALSE, warning=FALSE, comment=FALSE}
+rare_physeq1 = rarefy_even_depth(physeq1, rngseed = 711)
+rich = estimate_richness(rare_physeq1)
+```
+
+  
+```{r echo=FALSE, warning=FALSE, comment=FALSE}
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P2"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P2"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P2"])
+
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P3"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P3"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P3"])
+
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
+
+
+
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P2"], rich$Observed[sample_data(rare_physeq1)$Area == "P3"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P2"], rich$Shannon[sample_data(rare_physeq1)$Area == "P3"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P2"], rich$Simpson[sample_data(rare_physeq1)$Area == "P3"])
+
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P2"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P2"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P2"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
+
+
+wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P3"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P3"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P3"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
+```
+
+### PCoA
+
+#### ASV level
+```{r}
+physeq1_rel  = transform_sample_counts(physeq1, function(x) x / sum(x)*100 )
+sample_sums(physeq1_rel)
+```
+
+```{r}
+library(ggrepel)
+library(ggplot2)
+brayDist <- phyloseq::distance(physeq1_rel, method="bray")
+iMDS  <- ordinate(physeq1_rel)
+p <- plot_ordination(physeq1_rel, iMDS, color ="Area") + theme_light() +
+  ggrepel::geom_text_repel(aes(label=SampleName), max.overlaps = 30)
+p = p + geom_point(aes(size=2, alpha = 0.6))
+beta_div = p + scale_color_manual(values = c('#CEB992', '#73937E', '#8c86a3', '#db7551'))
+```
+
+```{r}
+library(vegan)
+physeq33 <- as(sample_data(physeq1_rel), "data.frame")
+adonis2(brayDist ~ Area, data = physeq33)
+```
+
+#### Genus level
+
+```{r}
+physeq_R6 <- tax_glom(physeq1, taxrank = rank_names(physeq1)[6], NArm = FALSE)
+physeq_R6_rel  = transform_sample_counts(physeq_R6, function(x) x / sum(x)*100 )
+sample_sums(physeq_R6_rel)
+```
+
+```{r}
+library(ggrepel)
+library(ggplot2)
+brayDist <- phyloseq::distance(physeq_R6_rel, method="bray")
+iMDS  <- ordinate(physeq_R6_rel, distance=brayDist, method = "PCoA")
+p <- plot_ordination(physeq_R6_rel, iMDS, color ="Area") + theme_light() +
+  ggrepel::geom_text_repel(aes(label=SampleName), max.overlaps = 30)
+p = p + geom_point(aes(size=2, alpha = 0.6))
+beta_div = p + scale_color_manual(values = c('#CEB992', '#73937E', '#8c86a3', '#db7551'))
+beta_div
+```
+
+
+### Taxonomic profile
+
+#### Genus level
+
+```{r echo=FALSE, reuslts=FALSE, warning=FALSE, comment=FALSE}
+all = phyloseq_to_df(physeq_R6_rel, sorting = NULL)
+write.table(all, row.names = FALSE, file = "./tables/relative-abundance_Genus.csv", quote = FALSE, sep = '\t', dec = '.')
+```
+  
+```{r echo=FALSE, results=FALSE, warning=FALSE, comment=FALSE}
+top20 = read.csv2("./tables/top20_relative-abundance_Genus.csv", sep = "\t", dec = ".")
+top20
+```
+
+```{r echo=FALSE, results=FALSE, warning=FALSE, comment=FALSE}
+library(tidyr)
+long.top20 <- gather(top20, Condition, Relative_abundance, H2.1:H1, factor_key=TRUE)
+long.top20
+```
+
+```{r echo=FALSE, comment=FALSE}
+library(ggplot2)
+library(forcats)
+library(RColorBrewer)
+
+getPalette = colorRampPalette(brewer.pal(9, "Set3"))
+palette = rev(getPalette(20))
+palette[c(2, 5, 10, 11, 12, 14, 16, 18)] = c("#b07896", "#e5ebcc", "#688753",  "#7B838E", "#B9D9EB", "#edb9bf", "#98b7d9", "#FBCEB1")
+
+
+p = ggplot(long.top20, aes(fill = fct_reorder(Taxonomy, Order, .desc = TRUE), y=Relative_abundance, x=Condition)) + 
+  geom_bar( stat="identity",color="black")
+p = p + ylab("Relative abundance (%)") + xlab("") + guides(fill=guide_legend(ncol=2, title = "Taxa"))
+p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1, size=9), axis.text.y = element_text(size=9), panel.background = element_rect(fill = "white", colour = "grey"), axis.title.y = element_text(size = 12))
+genera_abundances_plot = p + scale_fill_manual(values = palette) 
+newSTorder = c('F1', 'F2', 'M1', 'M2', 'M3', 'H1', 'H2.1', 'H2.2', 'H2.3', 'H3', 'H4', 'H5')
+
+genera_abundances_plot$data$Condition <- as.character(genera_abundances_plot$data$Condition)
+genera_abundances_plot$data$Condition <- factor(genera_abundances_plot$data$Condition, levels=newSTorder)
+
+genera_abundances_plot
+
+# ggsave(filename = "./Figures/genera.png", plot = p, device = "png")
+```
+
+#### Phylum level
+
+```{r}
+physeq_R2 <- tax_glom(physeq1, taxrank = rank_names(physeq1)[2], NArm = FALSE)
+physeq_R2_rel  = transform_sample_counts(physeq_R2, function(x) x / sum(x)*100)
+physeq_R2
+```
+
+```{r echo=FALSE, reuslts=FALSE, warning=FALSE, comment=FALSE}
+all = phyloseq_to_df(physeq_R2_rel, sorting = NULL)
+write.table(all, row.names = FALSE, file = "./tables/relative-abundances_Phylum.csv", quote = FALSE, sep = '\t', dec = '.')
+```
+
+```{r echo=FALSE, results=FALSE, warning=FALSE, comment=FALSE}
+top20 = read.csv2("./tables/top20_relative-abundance_Phylum.csv", sep = "\t", dec = ".")
+top20
+```
+
+```{r echo=FALSE, results=FALSE, warning=FALSE, comment=FALSE}
+library(tidyr)
+long.top20 <- gather(top20, Condition, Relative_abundance, H2.1:H1, factor_key=TRUE)
+long.top20
+```
+
+```{r}
+library(forcats)
+library(ggplot2)
+library(RColorBrewer)
+
+getPalette = colorRampPalette(brewer.pal(9, "Set3"))
+palette = rev(getPalette(20))
+
+p = ggplot(long.top20, aes(fill = fct_reorder(Taxonomy, Order, .desc = TRUE), y=Relative_abundance, x=Condition)) + 
+  geom_bar( stat="identity", color = "black")
+p = p + ylab("Relative abundance (%)") + xlab("") + guides(fill=guide_legend(ncol=2, title = "Taxa"))
+p = p + theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.background = element_rect(fill = "white", colour = "grey"))
+p = p + scale_fill_manual(values = palette) 
+phylum_abundances_plot = p + scale_fill_manual(values = palette) 
+newSTorder = c('F1', 'F2', 'M1', 'M2', 'M3', 'H1', 'H2.1', 'H2.2', 'H2.3', 'H3', 'H4', 'H5')
+
+phylum_abundances_plot$data$Condition <- as.character(phylum_abundances_plot$data$Condition)
+phylum_abundances_plot$data$Condition <- factor(phylum_abundances_plot$data$Condition, levels=newSTorder)
+```
+
+#### Abundances of specific genera
+
+```{r}
+interesting_genera = read.csv2("./tables/interesting_genera_transposed.csv", sep = ",", dec = ".")
+interesting_genera
+library(GGally)
+interesting_genera
+rownames(interesting_genera)
+p_aMas <- ggparcoord(interesting_genera[1:4,], 
+                 columns = c(2:13), 
+                 groupColumn = 1, scale="globalminmax",
+    showPoints = TRUE, 
+    title = "No scaling",
+    alphaLines = 0.3
+    ) + 
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=13)
+  ) +
+  xlab("")
+
+p_aMas = p_aMas + ylab("Relative abundance (%)") + xlab("") + guides(fill=guide_legend(ncol=2, title = "Taxa")) + theme_light()
+p_aMas = p_aMas + scale_color_manual(labels = c('Bacteroides', 'Christensenellaceae R-7 group', 'Clostridia UCG-014', 'Oscillospirales UCG-010'), values = c("#8DD3C7", "#EDECBD","#B9D9EB", "#688753"))
+p_aMas = p_aMas + geom_line(size=1.2, alpha = 1, color = "#4a4a4a")
+p_aMas = p_aMas + geom_line(size=1, alpha = 1)
+p_aMas = p_aMas + geom_point(size = 2.5, alpha = 1, color = "#4a4a4a")
+p_aMas = p_aMas + geom_point(size = 2.3, alpha = 1)
+
+p_aMas = p_aMas + scale_y_continuous(breaks=seq(0, 30, 5),  labels = function(x) format(x, scientific = FALSE)) + expand_limits(y=c(0,30))
+p_aMas = p_aMas + labs(title = "") + theme(legend.position="bottom", axis.title.y = element_text(size=11), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 12))
+```
+
+```{r}
+p_aMedio <- ggparcoord(interesting_genera[5:8,], 
+                 columns = c(2:13), 
+                 groupColumn = 1, scale="globalminmax",
+    showPoints = TRUE, 
+    title = "No scaling",
+    alphaLines = 0.3
+    ) + 
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=13)
+  ) +
+  xlab("")
+
+p_aMedio = p_aMedio + ylab("Relative abundance (%)") + xlab("") + guides(fill=guide_legend(ncol=2, title = "Taxa")) + theme_light()
+p_aMedio = p_aMedio + scale_color_manual(labels = c('Alistipes', 'Candidatus Soleaferrea', 'Desulfovibrio', 'Tyzzerella'), values = c("#98b7d9", "#F78377", "#C4B3CF", "#F6CEE3"))
+p_aMedio = p_aMedio + geom_line(size=1.2, alpha = 1, color = "#4a4a4a")
+p_aMedio = p_aMedio + geom_line(size=1, alpha = 1)
+p_aMedio = p_aMedio + geom_point(size = 2.5, alpha = 1, color = "#4a4a4a")
+p_aMedio = p_aMedio + geom_point(size = 2.3, alpha = 1)
+p_aMedio = p_aMedio + scale_y_continuous(breaks=seq(0, 30, 5),  labels = function(x) format(x, scientific = FALSE)) + expand_limits(y=c(0,30))
+
+p_aMedio = p_aMedio + labs(title = "") + theme(legend.position="bottom", axis.title.y = element_text(size=11), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 12))
+```
+
+```{r}
+p_aMenos <- ggparcoord(interesting_genera[9:11,], 
+                 columns = c(2:13), 
+                 groupColumn = 1, scale="globalminmax",
+    showPoints = TRUE, 
+    title = "No scaling",
+    alphaLines = 0.3
+    ) + 
+  theme(
+    legend.position="none",
+    plot.title = element_text(size=13)
+  ) +
+  xlab("")
+
+p_aMenos = p_aMenos + ylab("Relative abundance (%)") + xlab("") + guides(fill=guide_legend(ncol=2, title = "Taxa")) + theme_light()
+p_aMenos = p_aMenos + scale_color_manual(labels = c('Bacillus', 'Enterococcus', 'Serratia'), values = c( "#FBCEB1", "#CEB28B","#BAD968"))
+p_aMenos = p_aMenos + geom_line(size=1.2, alpha = 1, color = "#4a4a4a")
+p_aMenos = p_aMenos + geom_line(size=1, alpha = 1)
+p_aMenos = p_aMenos + geom_point(size = 2.5, alpha = 1, color = "#4a4a4a")
+p_aMenos = p_aMenos + geom_point(size = 2.3, alpha = 1)
+p_aMenos = p_aMenos + scale_y_continuous(breaks=seq(0, 30, 5),  labels = function(x) format(x, scientific = FALSE)) + expand_limits(y=c(0,30))
+
+p_aMenos = p_aMenos + labs(title = "") + theme(legend.position="bottom", axis.title.y = element_text(size=11), axis.text.x = element_text(size = 14), axis.text.y = element_text(size = 12))
+```
+
+#### Differential abundance analysis of taxa with MaAsLin2
+
+##### Genus
+
+###### P1 vs P2
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P1", "P2"))
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P1vsP2.csv", sep = "\t", row.names = TRUE)
+```
+
+#### P1 vs P3
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P1", "P3"))
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+taxa_info
+
+
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+mas_1
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+taxa_info
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P1vsP3.csv", sep = "\t", row.names = TRUE)
+```
+
+#### P1 vs P4
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P1", "P4"))
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+taxa_info
+
+
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+mas_1
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+taxa_info
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P1vsP4.csv", sep = "\t", row.names = TRUE)
+```
+
+#### P2 vs P3
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P2", "P3"))
+
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+taxa_info
+
+
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+mas_1
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+taxa_info
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P2vsP3.csv", sep = "\t", row.names = TRUE)
+```
+
+#### P2 vs P4
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P2", "P4"))
+
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+taxa_info
+
+
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+mas_1
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+taxa_info
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P2vsP4.csv", sep = "\t", row.names = TRUE)
+```
+
+#### P3 vs P4
+```{r}
+library(Maaslin2)
+library(dplyr)
+subset_physeq_R6=subset_samples(physeq_R6_rel, Area%in%c("P3", "P4"))
+
+taxa_info = as(tax_table((subset_physeq_R6)), "matrix")
+taxa_info <- data.frame(taxa_info)
+taxa_info$feature <- rownames(taxa_info)
+taxa_info
+
+
+mas_1 <- Maaslin2(
+  input_data = data.frame(otu_table(subset_physeq_R6)),
+  input_metadata = data.frame(sample_data(subset_physeq_R6)),
+  output = "./tables/MaAsLin2",
+  min_abundance = 0,
+  min_prevalence = 0.05,
+  normalization = 'None',
+  transform = 'LOG',
+  analysis_method = "LM",
+  fixed_effects = "Area",
+  correction = "BH",
+  standardize = FALSE,
+  cores = 4, 
+  plot_heatmap = FALSE, 
+  plot_scatter = FALSE)
+
+mas_res_df <- mas_1$results
+mas_1
+
+fdr_mas <- mas_res_df %>%
+    dplyr::filter(qval < 0.05)
+
+fdr_mas$feature = gsub("^X", "", fdr_mas$feature)
+taxa_info
+sig_maaslin2 <- left_join(fdr_mas, taxa_info)
+sig_maaslin2
+
+write.csv(sig_maaslin2, "./tables/MaAsLin2/genus_P3vsP4.csv", sep = "\t", row.names = TRUE)
+```
+
+### Función accesoria (phyloseq_to_df)
+
+```{r}
+phyloseq_to_df <- function(physeq, addtax = T, addtot = F, addmaxrank = F, sorting = "abundance"){
+  
+  # require(phyloseq)
+  
+  ## Data validation
+  if(any(addtax == TRUE || sorting == "taxonomy")){
+    if(is.null(phyloseq::tax_table(physeq, errorIfNULL = F))){
+      stop("Error: taxonomy table slot is empty in the input data.\n")
+    }
+  }
+  
+  ## Prepare data frame
+  if(taxa_are_rows(physeq) == TRUE){
+    res <- data.frame(OTU = phyloseq::taxa_names(physeq), phyloseq::otu_table(physeq), stringsAsFactors = F)
+  } else {
+    res <- data.frame(OTU = phyloseq::taxa_names(physeq), t(phyloseq::otu_table(physeq)), stringsAsFactors = F)
+  }
+  
+  ## Check if the sample names were silently corrected in the data.frame
+  if(any(!phyloseq::sample_names(physeq) %in% colnames(res)[-1])){
+    if(addtax == FALSE){
+      warning("Warning: Sample names were converted to the syntactically valid column names in data.frame. See 'make.names'.\n")
+    }
+    
+    if(addtax == TRUE){
+      stop("Error: Sample names in 'physeq' could not be automatically converted to the syntactically valid column names in data.frame (see 'make.names'). Consider renaming with 'sample_names'.\n")
+    }
+  }
+  
+  ## Add taxonomy
+  if(addtax == TRUE){
+    
+    ## Extract taxonomy table
+    taxx <- as.data.frame(phyloseq::tax_table(physeq), stringsAsFactors = F)
+    
+    ## Reorder taxonomy table
+    taxx <- taxx[match(x = res$OTU, table = rownames(taxx)), ]
+    
+    ## Add taxonomy table to the data
+    res <- cbind(res, taxx)
+    
+    ## Add max tax rank column
+    if(addmaxrank == TRUE){
+      
+      ## Determine the lowest level of taxonomic classification
+      res$LowestTaxRank <- get_max_taxonomic_rank(taxx, return_rank_only = TRUE)
+      
+      ## Reorder columns (OTU name - Taxonomy - Max Rank - Sample Abundance)
+      res <- res[, c("OTU", phyloseq::rank_names(physeq), "LowestTaxRank", phyloseq::sample_names(physeq))]
+      
+    } else {
+      ## Reorder columns (OTU name - Taxonomy - Sample Abundance)
+      res <- res[, c("OTU", phyloseq::rank_names(physeq), phyloseq::sample_names(physeq))]
+      
+    } # end of addmaxrank
+  }   # end of addtax
+  
+  ## Reorder OTUs
+  if(!is.null(sorting)){
+    
+    ## Sort by OTU abundance
+    if(sorting == "abundance"){
+      otus <- res[, which(colnames(res) %in% phyloseq::sample_names(physeq))]
+      res <- res[order(rowSums(otus, na.rm = T), decreasing = T), ]
+    }
+    
+    ## Sort by OTU taxonomy
+    if(sorting == "taxonomy"){
+      taxtbl <- as.data.frame( phyloseq::tax_table(physeq), stringsAsFactors = F )
+      
+      ## Reorder by all columns
+      taxtbl <- taxtbl[do.call(order, taxtbl), ]
+      # taxtbl <- data.table::setorderv(taxtbl, cols = colnames(taxtbl), na.last = T)
+      res <- res[match(x = rownames(taxtbl), table = res$OTU), ]
+    }
+  }
+  
+  ## Add OTU total abundance
+  if(addtot == TRUE){
+    res$Total <- rowSums(res[, which(colnames(res) %in% phyloseq::sample_names(physeq))])
+  }
+  
+  rownames(res) <- NULL
+  return(res)
+}
+```
+

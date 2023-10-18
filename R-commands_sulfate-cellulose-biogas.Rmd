@@ -1,0 +1,204 @@
+---
+title: "Commands for taxonomic analysis (16S rRNA gene and ITS2) of Pachnoda butana gut - Cellulose degradation, sulfate reduction and biogas production analyses"
+output: html_notebook
+---
+
+```{r}
+rm (list = ls())
+```
+
+# 16S
+
+```{r}
+library(phyloseq)
+physeqObjest <- import_biom("16S/qiime2/table-with-taxonomy-json2.biom",
+                            refseqArgs=NULL, parseFunction = parse_taxonomy_default, 
+                            parallel=FALSE)
+```
+
+```{r}
+# METADATA
+mapfile = read.csv("./metadata.csv", header = TRUE, sep=",")
+samples = mapfile[,1]
+rownames(mapfile) = samples
+mapfile = mapfile[,2:length(colnames(mapfile))]
+
+colnames(otu_table(physeqObjest))
+rownames(mapfile)
+
+ord = match(colnames(otu_table(physeqObjest)), rownames(mapfile), )
+
+mapfile = mapfile[ord,]
+sampledata = sample_data(mapfile)
+physeq1 = merge_phyloseq(physeqObjest, sampledata)
+sample_sums(physeq1)
+```
+
+```{r}
+physeq1 = subset_taxa(physeq1, (Rank1 !="d__Eukaryota") | is.na(Rank1))
+physeq1 = subset_taxa(physeq1, (Rank2 !="p__Vertebrata") | is.na(Rank2))
+physeq1 = subset_taxa(physeq1, (Rank5 !="f__Mitochondria") | is.na(Rank5))
+physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
+
+physeq1_Bacteria = subset_taxa(physeq1, (Rank1 !="d__Bacteria"))
+physeq1_Archaea = subset_taxa(physeq1, (Rank1 !="d__Archaea"))
+```
+
+```{r echo=FALSE, reuslts=FALSE, warning=FALSE, comment=FALSE}
+physeq_R6 <- tax_glom(physeq1_Bacteria, taxrank = rank_names(physeq1_Bacteria)[6], NArm = FALSE)
+physeq_R6_rel  = transform_sample_counts(physeq_R6, function(x) x / sum(x)*100 )
+sample_sums(physeq_R6_rel)
+colnames(otu_table(physeq_R6_rel))
+all = phyloseq_to_df(physeq_R6_rel, sorting = NULL)
+write.table(all, row.names = FALSE, file = "./relativeAbundance_Genus_Bacteria.csv", quote = FALSE, sep = '\t', dec = '.')
+
+physeq_R6 <- tax_glom(physeq1_Archaea, taxrank = rank_names(physeq1_Archaea)[6], NArm = FALSE)
+physeq_R6_rel  = transform_sample_counts(physeq_R6, function(x) x / sum(x)*100 )
+sample_sums(physeq_R6_rel)
+colnames(otu_table(physeq_R6_rel))
+all = phyloseq_to_df(physeq_R6_rel, sorting = NULL)
+write.table(all, row.names = FALSE, file = "./relativeAbundance_Genus_Archaea.csv", quote = FALSE, sep = '\t', dec = '.')
+```
+
+# ITS
+
+```{r}
+library(phyloseq)
+physeqObjest <- import_biom("ITS/qiime2/table-with-taxonomy-json2.biom",
+                            refseqArgs=NULL, parseFunction = parse_taxonomy_default, 
+                            parallel=FALSE)
+```
+
+```{r}
+# METADATA
+mapfile = read.csv("./metadata.csv", header = TRUE, sep=",")
+samples = mapfile[,1]
+rownames(mapfile) = samples
+mapfile = mapfile[,2:length(colnames(mapfile))]
+
+colnames(otu_table(physeqObjest))
+rownames(mapfile)
+
+ord = match(colnames(otu_table(physeqObjest)), rownames(mapfile), )
+
+mapfile = mapfile[ord,]
+sampledata = sample_data(mapfile)
+physeq1 = merge_phyloseq(physeqObjest, sampledata)
+sample_sums(physeq1)
+```
+
+```{r}
+physeq1 = subset_taxa(physeq1, (Rank1 !="d__Eukaryota") | is.na(Rank1))
+physeq1 = subset_taxa(physeq1, (Rank2 !="p__Vertebrata") | is.na(Rank2))
+physeq1 = subset_taxa(physeq1, (Rank5 !="f__Mitochondria") | is.na(Rank5))
+physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
+
+physeq1_Fungi = subset_taxa(physeq1, (Rank1 !="k__Fungi"))
+```
+
+```{r echo=FALSE, reuslts=FALSE, warning=FALSE, comment=FALSE}
+physeq_R6 <- tax_glom(physeq1_Fungi, taxrank = rank_names(physeq1_Fungi)[6], NArm = FALSE)
+physeq_R6_rel  = transform_sample_counts(physeq_R6, function(x) x / sum(x)*100 )
+sample_sums(physeq_R6_rel)
+colnames(otu_table(physeq_R6_rel))
+all = phyloseq_to_df(physeq_R6_rel, sorting = NULL)
+write.table(all, row.names = FALSE, file = "./relativeAbundance_Genus_Fungi.csv", quote = FALSE, sep = '\t', dec = '.')
+```
+
+
+# Make joined plot
+
+## Bacteria plot
+```{r}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+
+data <- read.csv("Bacteria_joined_top_filtered.csv", header = TRUE, sep=",")
+
+data$Taxonomy <- factor(data$Taxonomy,                                    # Factor levels in decreasing order
+                  levels = data$Taxonomy[order(data$Biogas, decreasing = TRUE)])
+
+# Utilizamos la función gather para convertir las columnas A, B, C, D, E en una sola columna "Condition"
+df_gathered <- gather(data, key = "Condition", value = "Abundance", Biogas:Celulose_anaerobic)
+
+# Creamos el gráfico con ggplot2
+bacteria_plot = ggplot(df_gathered, aes(x = Taxonomy, y = Abundance, fill = Condition)) + theme_light() +
+  
+  geom_bar(stat = "identity", position = position_dodge2(reverse=TRUE, padding = 0), color = "black") + 
+  labs(title = "Bacteria", x = "", y = "Abundance (%)", fill = "Condition") +
+  coord_flip()  +
+  scale_x_discrete(limits = rev(levels(df_gathered$Taxonomy))) +
+  # scale_fill_discrete(name = "Condición", labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = c('#cf9302', '#05a187', '#80c4b8', '#a11046', '#cc93a8'), labels = c("Biogas", "Cellulose - Aerobic medium", "Cellulose - Anaerobic medium", "Sulfate - Synthetic medium", "Sulfate - Polluted water"))
+
+
+bacteria_plot = bacteria_plot + theme(panel.background = element_rect(fill = "white", colour = "grey"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.text = element_text(size = 13), axis.title = element_text(size = 13, face = "bold"))
+
+
+bacteria_plot
+```
+
+## Archaea plot
+```{r}
+data <- read.csv("Archaea_joined_top.csv", header = TRUE, sep=",")
+
+data$Taxonomy <- factor(data$Taxonomy,                                    # Factor levels in decreasing order
+                  levels = data$Taxonomy[order(data$Biogas, decreasing = TRUE)])
+
+# Utilizamos la función gather para convertir las columnas A, B, C, D, E en una sola columna "Condition"
+df_gathered <- gather(data, key = "Condition", value = "Abundance", Biogas:Celulose_anaerobic)
+
+# Creamos el gráfico con ggplot2
+archaea_plot = ggplot(df_gathered, aes(x = Taxonomy, y = Abundance, fill = Condition)) + theme_light() + 
+  
+  geom_bar(stat = "identity", position = position_dodge2(reverse=TRUE, padding = 0), color = "black") +  
+  labs(title = "Archaea", x = "", y = "Abundance (%)", fill = "Condition") +
+  coord_flip()  +
+  scale_x_discrete(limits = rev(levels(df_gathered$Taxonomy))) +
+  # scale_fill_discrete(name = "Condición", labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = c('#cf9302', '#05a187', '#80c4b8', '#a11046', '#cc93a8'), labels = c("Biogas", "Cellulose - Aerobic medium", "Cellulose - Anaerobic medium", "Sulfate - Synthetic medium", "Sulfate - Polluted water"))
+
+
+archaea_plot = archaea_plot + theme(panel.background = element_rect(fill = "white", colour = "grey"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.text = element_text(size = 13), axis.title = element_text(size = 13, face = "bold"))
+
+
+archaea_plot
+```
+
+
+
+## Fungi plot
+```{r}
+data <- read.csv("Fungi_joined_top_filtered.csv", header = TRUE, sep=",")
+
+data$Taxonomy <- factor(data$Taxonomy,                                    # Factor levels in decreasing order
+                  levels = data$Taxonomy[order(data$Biogas, decreasing = TRUE)])
+
+# Utilizamos la función gather para convertir las columnas A, B, C, D, E en una sola columna "Condition"
+df_gathered <- gather(data, key = "Condition", value = "Abundance", Biogas:Celulose_anaerobic)
+
+# Creamos el gráfico con ggplot2
+fungi_plot = ggplot(df_gathered, aes(x = Taxonomy, y = Abundance, fill = Condition)) + theme_light() + 
+  
+  geom_bar(stat = "identity", position = position_dodge2(reverse=TRUE, padding = 0), color = "black") +  
+  labs(title = "Fungi", x = "", y = "Abundance (%)", fill = "Condition") +
+  coord_flip()  +
+  scale_x_discrete(limits = rev(levels(df_gathered$Taxonomy))) +
+  # scale_fill_discrete(name = "Condición", labels = c("A", "B", "C", "D", "E")) +
+  scale_fill_manual(values = c('#cf9302', '#05a187', '#80c4b8', '#a11046', '#cc93a8'), labels = c("Biogas", "Cellulose - Aerobic medium", "Cellulose - Anaerobic medium", "Sulfate - Synthetic medium", "Sulfate - Polluted water"))
+
+
+fungi_plot = fungi_plot + theme(panel.background = element_rect(fill = "white", colour = "grey"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.text = element_text(size = 13), axis.title = element_text(size = 13, face = "bold"))
+```
+
+## Joined plot:
+```{r}
+library(dplyr)
+library(ggpubr)
+
+figure = ggarrange(bacteria_plot, archaea_plot, fungi_plot, 
+                    # labels = c('Fusobacterium',  'Actinobacillus',  'Actinomyces',  'Granulicatella',  'Corynebacterium',  'Bergeyella',  'Lautropia',  'Abiotrophia'),
+                    labels = c("A", "B", "C"),
+                    ncol = 3, nrow = 1, common.legend = TRUE,legend="bottom", font.label = list(size = 24))  + theme(plot.margin=unit(c(0.2,0.2,0.2,0.2),"cm"))
+```
