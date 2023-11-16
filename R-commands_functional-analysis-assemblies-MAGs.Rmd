@@ -3,251 +3,64 @@ title: "Commands for search genes involved in functions of interest in assemblie
 output: html_notebook
 ---
 
-# only MAGs
+# MAGs - presence/absence EC numbers
 ```{r}
 # load package
 library(pheatmap)
 library(dplyr)
-data <- read.csv2('functional-search/kofamscan_summary_MAGs.csv', sep = ',')
-
-data$EC_proteina <- paste(data$EC)
-length(rownames(data))
-
-data = filter(data, assembly_MAG != "P1")
-data = filter(data, assembly_MAG != "P2")
-data = filter(data, assembly_MAG != "P3")
-data = filter(data, assembly_MAG != "P4")
-
-length(rownames(data))
-
-```
-
-### Cellulose degradation
-```{r}
-library(pheatmap)
-a = data$name_in_plots
+data <- read.csv2('functional-search/kofamscan_summary_MAGs_filtered.csv', sep = ',')
+MAGs = data$MAG
 Phylum = data$phylum
-df <- data.frame(Phylum, a)
+df <- data.frame(Phylum, MAGs)
 df_unique <- unique(df)
-rownames(df_unique) <- df_unique$a
-df_unique$a <- NULL
+rownames(df_unique) <- df_unique$MAGs
+df_unique$samples <- NULL
 
-data_cellulose = filter(data, activity == "cellulose")
-data_cellulose = filter(data_cellulose, name_in_plots != "P1")
-data_cellulose = filter(data_cellulose, name_in_plots != "P2")
-data_cellulose = filter(data_cellulose, name_in_plots != "P3")
-data_cellulose = filter(data_cellulose, name_in_plots != "P4")
-data_cellulose = data_cellulose
-
-
-matriz_conteo <- as.matrix(table(data_cellulose$name_in_plots, data_cellulose$EC_proteina))
-matriz_conteo
+matriz_conteo <- as.matrix(table(data$MAGs, data$EC))
 matriz_conteo_modificada <- matriz_conteo[rowSums(matriz_conteo) != 0, ]
 
-matriz_conteo_modificada
 ann_colors = list(
     Phylum = c(Bacteroidota = "#a34040", Desulfobacterota = "#de1818", Desulfobacterota_I = "#ebb0b0",  Firmicutes = "#8c5b2d", Firmicutes_A = "#473f38", Firmicutes_C = "#ff7b00", Actinobacteriota = "#b8a70d", Planctomycetota = "#b0d45d", Fibrobacterota = "#85ab7b", Patescibacteria = "#5f8385", Proteobacteria = "#676ab5", Fusobacteriota = "#9967b5", Verrucomicrobiota = "#d13d73", Thermoplasmatota = "#75141a")
 )
 
-col1 = colorRampPalette(c("white", '#055c3f'))(111) #set the order of greys
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
+col1 = colorRampPalette(c("#E2ECE5", "#73aabf"))(111) #set the order of greys
 col1[c(1)] = c("white")
- 
-col2 <- rep("white", 2)
-col3 = colorRampPalette(c("gray31", "gray0"))(9)
-colors2 <- c(col1, col2, col3)
 
-cellulose = pheatmap(matriz_conteo_modificada, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
+matriz_binaria <- ifelse(matriz_conteo_modificada > 0, 1, 0)
+
+order_EC = c("3.2.1.4", "3.2.1.21", "2.7.7.4", "2.7.1.25", "1.8.4.8", "1.8.1.2", "1.8.7.1", "1.8.99.2", "1.8.99.5", "1.2.7.12",  "1.5.98.2", "1.8.98.1", "2.8.4.1", "2.7.2.1", "2.3.1.8", "6.2.1.1", "2.3.1.169", "2.1.1.245", "1.2.7.4", "2.1.1.90", "2.1.1.246", "2.1.1.248")
+matriz_binaria <- matriz_binaria[, order_EC]
+
+MAGs_plot = pheatmap(matriz_binaria, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
 ```
 
-## Sulfate reduction pathways
+# assemblies - presence/absence EC numbers
 ```{r}
-library(pheatmap)
-a = data$name_in_plots
-Phylum = data$phylum
-df <- data.frame(Phylum, a)
-df_unique <- unique(df)
-rownames(df_unique) <- df_unique$a
-df_unique$a <- NULL
-
-data_sulfate = filter(data, activity == "sulfate")
-data_sulfate = filter(data_sulfate, name_in_plots != "P1")
-data_sulfate = filter(data_sulfate, name_in_plots != "P2")
-data_sulfate = filter(data_sulfate, name_in_plots != "P3")
-data_sulfate = filter(data_sulfate, name_in_plots != "P4")
-data_sulfate = data_sulfate
-
-
-matriz_conteo <- as.matrix(table(data_sulfate$name_in_plots, data_sulfate$EC_proteina))
-matriz_conteo
-matriz_conteo_modificada <- matriz_conteo[rowSums(matriz_conteo) != 0, ]
-
-matriz_conteo_modificada
-ann_colors = list(
-    Phylum = c(Bacteroidota = "#a34040", Desulfobacterota = "#de1818", Desulfobacterota_I = "#ebb0b0",  Firmicutes = "#8c5b2d", Firmicutes_A = "#473f38", Firmicutes_C = "#ff7b00", Actinobacteriota = "#b8a70d", Planctomycetota = "#b0d45d", Fibrobacterota = "#85ab7b", Patescibacteria = "#5f8385", Proteobacteria = "#676ab5", Fusobacteriota = "#9967b5", Verrucomicrobiota = "#d13d73", Thermoplasmatota = "#75141a")
-)
-
-col1 = colorRampPalette(c("white", '#055c3f'))(111) #set the order of greys
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
-col1[c(1)] = c("white")
- 
-col2 <- rep("white", 2)
-col3 = colorRampPalette(c("gray31", "gray0"))(9)
-colors2 <- c(col1, col2, col3)
-
-sulfate = pheatmap(matriz_conteo_modificada, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
-```
-
-
-## Methylotrophic pathway
-```{r}
-library(pheatmap)
-a = data$name_in_plots
-Phylum = data$phylum
-df <- data.frame(Phylum, a)
-df_unique <- unique(df)
-rownames(df_unique) <- df_unique$a
-df_unique$a <- NULL
-
-data_methylotrophic = filter(data, activity == "methylotrophic")
-data_methylotrophic = filter(data_methylotrophic, name_in_plots != "P1")
-data_methylotrophic = filter(data_methylotrophic, name_in_plots != "P2")
-data_methylotrophic = filter(data_methylotrophic, name_in_plots != "P3")
-data_methylotrophic = filter(data_methylotrophic, name_in_plots != "P4")
-data_methylotrophic = data_methylotrophic
-
-
-matriz_conteo <- as.matrix(table(data_methylotrophic$name_in_plots, data_methylotrophic$EC_proteina))
-matriz_conteo
-matriz_conteo_modificada <- matriz_conteo[rowSums(matriz_conteo) != 0, ]
-
-matriz_conteo_modificada
-ann_colors = list(
-    Phylum = c(Bacteroidota = "#a34040", Desulfobacterota = "#de1818", Desulfobacterota_I = "#ebb0b0",  Firmicutes = "#8c5b2d", Firmicutes_A = "#473f38", Firmicutes_C = "#ff7b00", Actinobacteriota = "#b8a70d", Planctomycetota = "#b0d45d", Fibrobacterota = "#85ab7b", Patescibacteria = "#5f8385", Proteobacteria = "#676ab5", Fusobacteriota = "#9967b5", Verrucomicrobiota = "#d13d73", Thermoplasmatota = "#75141a")
-)
-
-col1 = colorRampPalette(c("white", '#055c3f'))(111) #set the order of greys
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
-col1[c(1)] = c("white")
- 
-col2 <- rep("white", 2)
-col3 = colorRampPalette(c("gray31", "gray0"))(9)
-colors2 <- c(col1, col2, col3)
-
-methylotrophic = pheatmap(matriz_conteo_modificada, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
-```
-
-## Acetoclastic pathway
-```{r}
-library(pheatmap)
-a = data$name_in_plots
-Phylum = data$phylum
-df <- data.frame(Phylum, a)
-df_unique <- unique(df)
-rownames(df_unique) <- df_unique$a
-df_unique$a <- NULL
-
-data_acetoclastic = filter(data, activity == "acetoclastic")
-data_acetoclastic = filter(data_acetoclastic, name_in_plots != "P1")
-data_acetoclastic = filter(data_acetoclastic, name_in_plots != "P2")
-data_acetoclastic = filter(data_acetoclastic, name_in_plots != "P3")
-data_acetoclastic = filter(data_acetoclastic, name_in_plots != "P4")
-data_acetoclastic = data_acetoclastic
-
-
-matriz_conteo <- as.matrix(table(data_acetoclastic$name_in_plots, data_acetoclastic$EC_proteina))
-matriz_conteo
-matriz_conteo_modificada <- matriz_conteo[rowSums(matriz_conteo) != 0, ]
-
-matriz_conteo_modificada
-ann_colors = list(
-    Phylum = c(Bacteroidota = "#a34040", Desulfobacterota = "#de1818", Desulfobacterota_I = "#ebb0b0",  Firmicutes = "#8c5b2d", Firmicutes_A = "#473f38", Firmicutes_C = "#ff7b00", Actinobacteriota = "#b8a70d", Planctomycetota = "#b0d45d", Fibrobacterota = "#85ab7b", Patescibacteria = "#5f8385", Proteobacteria = "#676ab5", Fusobacteriota = "#9967b5", Verrucomicrobiota = "#d13d73", Thermoplasmatota = "#75141a")
-)
-
-col1 = colorRampPalette(c("white", '#055c3f'))(111) #set the order of greys
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
-col1[c(1)] = c("white")
- 
-col2 <- rep("white", 2)
-col3 = colorRampPalette(c("gray31", "gray0"))(9)
-colors2 <- c(col1, col2, col3)
-
-acetoclastic = pheatmap(matriz_conteo_modificada, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
-```
-
-## Hydrogenotrophic pathway
-```{r}
-library(pheatmap)
-a = data$name_in_plots
-Phylum = data$phylum
-df <- data.frame(Phylum, a)
-df_unique <- unique(df)
-rownames(df_unique) <- df_unique$a
-df_unique$a <- NULL
-
-data_hydrogenotrophic = filter(data, activity == "hydrogenotrophic")
-data_hydrogenotrophic = filter(data_hydrogenotrophic, name_in_plots != "P1")
-data_hydrogenotrophic = filter(data_hydrogenotrophic, name_in_plots != "P2")
-data_hydrogenotrophic = filter(data_hydrogenotrophic, name_in_plots != "P3")
-data_hydrogenotrophic = filter(data_hydrogenotrophic, name_in_plots != "P4")
-data_hydrogenotrophic = data_hydrogenotrophic
-
-
-matriz_conteo <- as.matrix(table(data_hydrogenotrophic$name_in_plots, data_hydrogenotrophic$EC_proteina))
-matriz_conteo
-matriz_conteo_modificada <- matriz_conteo[rowSums(matriz_conteo) != 0, ]
-
-matriz_conteo_modificada
-ann_colors = list(
-    Phylum = c(Bacteroidota = "#a34040", Desulfobacterota = "#de1818", Desulfobacterota_I = "#ebb0b0",  Firmicutes = "#8c5b2d", Firmicutes_A = "#473f38", Firmicutes_C = "#ff7b00", Actinobacteriota = "#b8a70d", Planctomycetota = "#b0d45d", Fibrobacterota = "#85ab7b", Patescibacteria = "#5f8385", Proteobacteria = "#676ab5", Fusobacteriota = "#9967b5", Verrucomicrobiota = "#d13d73", Thermoplasmatota = "#75141a")
-)
-
-col1 = colorRampPalette(c("white", '#055c3f'))(111) #set the order of greys
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
-col1[c(1)] = c("white")
- 
-col2 <- rep("white", 2)
-col3 = colorRampPalette(c("gray31", "gray0"))(9)
-colors2 <- c(col1, col2, col3)
-
-hydrogenotrophic = pheatmap(matriz_conteo_modificada, annotation_row = df_unique, cluster_rows = T, cluster_cols = F, show_rownames =T,  annotation_colors = ann_colors, color = col1, angle_col = 45, legend = T)
-```
-
-
-
-# only assemblies
-
-```{r}
-# load package
 library(pheatmap)
 library(dplyr)
-data <- read.csv2('functional-analysis/kofamscan_summary_assemblies.csv', sep = ',')
+data <- read.csv2('functional-search/kofamscan_summary_assemblies_filtered.csv', sep = ',')
 
-data$EC_proteina <- paste(data$EC)
-data = data %>%
-  filter(assembly_MAG %in% c("P1", "P2","P3","P4"))
-
-```
-
-```{r}
 library(ggplot2) # plotting 
 library(GDAdata) # data (SpeedSki)
 library(stringr)
 library(scales)
 
-p = ggplot(data, aes(assembly_MAG, EC_proteina)) + 
-  geom_bin2d()
-p = p + theme(axis.text.x = element_text(angle = 0, size=10, hjust = 0.5, vjust = 0.5), axis.text.y = element_text(size=8), panel.background = element_rect(fill = "white", colour = "grey"), axis.title.y = element_text(size = 18))
+order_activity = c("cellulose", "assimilatory", "dissimilatory", "hydrogenotrophic", "acetoclastic", "methylotrophic")
+data$activity <- factor(data$activity, levels = order_activity)
 
-col1 = colorRampPalette(c("#E2ECE5", '#14536C'))(111) #set the order of greys
-col1[c(1)] = c("white")
+order_EC = c("3.2.1.4", "3.2.1.91", "3.2.1.21",  "2.7.7.4", "2.7.1.25", "1.8.4.8", "1.8.1.2", "1.8.7.1", "1.8.99.2", "1.8.99.5", "1.2.7.12",  "2.3.1.101", "3.5.4.27", "1.5.98.1", "1.5.98.2", "2.1.1.86", "1.8.98.1", "2.8.4.1", "2.3.1.8", "2.7.2.1",  "6.2.1.1", "2.3.1.169", "2.1.1.245", "1.2.7.4", "2.1.1.90", "2.1.1.246", "2.1.1.248", "2.1.1.249", "2.1.1.247")
+data$EC <- factor(data$EC_proteina, levels = order_EC)
+
+p <- ggplot(data, aes(assembly, EC)) + 
+  geom_bin2d(aes(fill = after_stat(count > 0)), bins = 30) 
+p = p + theme(axis.text.x = element_text(angle = 0, size=15, hjust = 0.5, vjust = 0.5), axis.text.y = element_text(size=12), panel.background = element_rect(fill = "white", colour = "grey"), axis.title.y = element_text(size = 15))
 
 p = p + facet_grid(activity~., scales = "free", space = "free") +
-  scale_fill_gradient(trans = "log10", low = "#E2ECE5",
-                    high = "#14536C",
-                    guide = "colorbar") +
+  scale_fill_manual(values = "#73aabf") +
   scale_x_discrete(labels = label_wrap(40)) + 
   theme(axis.title.x = element_blank(),
           axis.title.y = element_blank())+
     scale_y_discrete(limits=rev)
+
+assemblies_plot = p + geom_tile(color = "white", size = 0.5, linetype = 1, fill = NA)
 ```
