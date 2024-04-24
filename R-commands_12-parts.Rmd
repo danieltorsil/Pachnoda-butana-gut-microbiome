@@ -95,38 +95,30 @@ alpha_div = p + scale_color_manual(values = c('#CEB992', '#73937E', '#8c86a3', '
 #### Are there significant differences between sample types?
 
 ```{r echo=FALSE, warning=FALSE, comment=FALSE}
-rare_physeq1 = rarefy_even_depth(physeq1, rngseed = 711)
-rich = estimate_richness(rare_physeq1)
-```
+richness = subset(alpha_div$data, Factor == "q = 0 (richness)")
+H1_data = subset(alpha_div$data, Factor == "q = 1 (exponential of Shannon’s entropy)")
+H2_data = subset(alpha_div$data, Factor == "q = 2 (inverse Simpson index)")
 
-  
-```{r echo=FALSE, warning=FALSE, comment=FALSE}
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P2"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P2"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P2"])
+wilcox.test(subset(richness, Area == "P1")$Valor, subset(richness, Area == "P2")$Valor)
+wilcox.test(subset(richness, Area == "P1")$Valor, subset(richness, Area == "P3")$Valor)
+wilcox.test(subset(richness, Area == "P1")$Valor, subset(richness, Area == "P4")$Valor)
+wilcox.test(subset(richness, Area == "P2")$Valor, subset(richness, Area == "P3")$Valor)
+wilcox.test(subset(richness, Area == "P2")$Valor, subset(richness, Area == "P4")$Valor)
+wilcox.test(subset(richness, Area == "P3")$Valor, subset(richness, Area == "P4")$Valor)
 
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P3"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P3"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P3"])
+wilcox.test(subset(H1_data, Area == "P1")$Valor, subset(H1_data, Area == "P2")$Valor)
+wilcox.test(subset(H1_data, Area == "P1")$Valor, subset(H1_data, Area == "P3")$Valor)
+wilcox.test(subset(H1_data, Area == "P1")$Valor, subset(H1_data, Area == "P4")$Valor)
+wilcox.test(subset(H1_data, Area == "P2")$Valor, subset(H1_data, Area == "P3")$Valor)
+wilcox.test(subset(H1_data, Area == "P2")$Valor, subset(H1_data, Area == "P4")$Valor)
+wilcox.test(subset(H1_data, Area == "P3")$Valor, subset(H1_data, Area == "P4")$Valor)
 
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P1"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P1"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P1"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
-
-
-
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P2"], rich$Observed[sample_data(rare_physeq1)$Area == "P3"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P2"], rich$Shannon[sample_data(rare_physeq1)$Area == "P3"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P2"], rich$Simpson[sample_data(rare_physeq1)$Area == "P3"])
-
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P2"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P2"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P2"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
-
-
-wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P3"], rich$Observed[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P3"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
-wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P3"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
+wilcox.test(subset(H2_data, Area == "P1")$Valor, subset(H2_data, Area == "P2")$Valor)
+wilcox.test(subset(H2_data, Area == "P1")$Valor, subset(H2_data, Area == "P3")$Valor)
+wilcox.test(subset(H2_data, Area == "P1")$Valor, subset(H2_data, Area == "P4")$Valor)
+wilcox.test(subset(H2_data, Area == "P2")$Valor, subset(H2_data, Area == "P3")$Valor)
+wilcox.test(subset(H2_data, Area == "P2")$Valor, subset(H2_data, Area == "P4")$Valor)
+wilcox.test(subset(H2_data, Area == "P3")$Valor, subset(H2_data, Area == "P4")$Valor)
 ```
 
 
