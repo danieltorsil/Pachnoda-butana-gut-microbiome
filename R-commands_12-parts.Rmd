@@ -46,31 +46,49 @@ sample_sums(physeq1)
 ### Alpha-diversity
 
 ```{r}
+library(hillR)
+
+physeq1_rarefied = rarefy_even_depth(physeq1, rngseed = 711)
+
+physeq1_rel  = transform_sample_counts(physeq1_rarefied, function(x) x / sum(x)*100 )
+OTUdf = phyloseq_to_df(physeq1_rel, sorting = NULL)
+
+df_transpuesto <- OTUdf %>%
+  select(starts_with("H"), starts_with("F"), starts_with("M")) %>%
+  t() %>%
+  as.data.frame()
+
+otu <- df_transpuesto
+
+h0 <- as.data.frame(hill_taxa(df_transpuesto, q = 0, MARGIN = 1, base = exp(1)))
+h0$Sample_Name <- row.names(h0)
+h1 <- as.data.frame(hill_taxa(df_transpuesto, q = 1, MARGIN = 1, base = exp(1)))
+h1$Sample_Name <- row.names(h1)
+h2 <- as.data.frame(hill_taxa(df_transpuesto, q = 2, MARGIN = 1, base = exp(1)))
+h2$Sample_Name <- row.names(h2)
+
+
+hill_total <- merge(h0, h1, by = "Sample_Name")
+hill_total <- merge(hill_total, h2, by = "Sample_Name")
+colnames(hill_total) <- c("Sample", "q = 0 (richness)","q = 1 (exponential of Shannon’s entropy)", "q = 2 (inverse Simpson index)")
+
+hill_total$Area = c("P1", "P1", "P3", "P3", "P3", "P3", "P4", "P4", "P4", "P2", "P2", "P2")
+df_long <- pivot_longer(hill_total, 
+                        cols = -c(Sample, Area),  # Excluimos la columna "Tipo" de la conversión
+                        names_to = "Factor", 
+                        values_to = "Valor")
+df_long <- df_long[order(df_long$Factor), ]
+# Crear el gráfico
+p <- ggplot(df_long, aes(Sample, Valor, color = Area)) + geom_point()
+
+p <- p + facet_wrap(vars(Factor), scales = "free") + xlab("") + ylab("")
+
 new_order = c('F1', 'F2', 'M1', 'M2', 'M3', 'H1', 'H2.1', 'H2.2', 'H2.3', 'H3', 'H4', 'H5')
-library(ggplot2)
-library(RColorBrewer)
-library(dplyr)
-library(ggpubr)
-p = plot_richness(rarefy_even_depth(physeq1, rngseed = 711), x="SampleName", color = "Area", measures=c("Observed", "Shannon", "Simpson")) + xlab("") + ylab("") # + geom_boxplot(alpha = .4, position=position_dodge(1)) + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_x_discrete(limits = new_order)
 p = p + theme_light() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_x_discrete(limits = new_order)
-p = p +geom_point(size = 3)
+p = p + geom_point(size = 3)
 
-alpha_div = p + scale_color_manual(values = c('#6cb895', '#B97A95', '#F6AE99', '#f0c36e'))
 alpha_div = p + scale_color_manual(values = c('#CEB992', '#73937E', '#8c86a3', '#db7551'))
-alpha_div$data$Area
-ASV_P1 = subset(alpha_div$data, Area %in% c('P1'))
-ASV_P1 = subset(ASV_P1, variable %in% c('Observed'))
-ASV_P2 = subset(alpha_div$data, Area %in% c('P2'))
-ASV_P2 = subset(ASV_P2, variable %in% c('Observed'))
-ASV_P3 = subset(alpha_div$data, Area %in% c('P3'))
-ASV_P3 = subset(ASV_P3, variable %in% c('Observed'))
-ASV_P4 = subset(alpha_div$data, Area %in% c('P4'))
-ASV_P4 = subset(ASV_P4, variable %in% c('Observed'))
-stderror_function <- function(a) sd(a) / sqrt(length(a))
-mean_function <- function(a) sum(a) / length(a)
 
-stderror <- stderror_function(ASV_P1$value)
-mean <- mean_function(ASV_P1$value)
 ```
 
 
@@ -110,6 +128,8 @@ wilcox.test(rich$Observed[sample_data(rare_physeq1)$Area == "P3"], rich$Observed
 wilcox.test(rich$Shannon[sample_data(rare_physeq1)$Area == "P3"], rich$Shannon[sample_data(rare_physeq1)$Area == "P4"])
 wilcox.test(rich$Simpson[sample_data(rare_physeq1)$Area == "P3"], rich$Simpson[sample_data(rare_physeq1)$Area == "P4"])
 ```
+
+
 
 ### PCoA
 
