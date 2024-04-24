@@ -57,8 +57,10 @@ library(ggplot2)
 brayDist <- phyloseq::distance(physeq1_rel, method="bray")
 iMDS  <- ordinate(physeq1_rel)
 p = p + geom_point(aes(size=3, alpha = 0.6))
-bacteria <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier_GutArea") + theme_light() 
-bacteria = bacteria + geom_point(aes(size=3, alpha = 0.6)) + scale_color_manual(values = c('#001f30', '#1e5775', '#5ca0c4', '#93b5c7', '#3b1401','#8c370b', '#c28261', '#d6b3a1'))
+
+p <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier", shape = "GutArea") + theme_light() 
+bacteria = p + geom_point(aes(size=3, alpha = 0.9)) + scale_color_manual(values = c('#5ca0c4', '#8c370b'))
+bacteria = bacteria + scale_shape_manual(values = c(15, 16, 17, 8))+ labs(title="Bacteria") + theme(plot.title = element_text(color="black", size=14, face="bold", hjust = 0.5))
 ```
 
 ### AMPVIS2 (heatmap)
@@ -89,8 +91,12 @@ p = amp_heatmap(
       color_vector = c("royalblue3",
                    "whitesmoke",
                    "lightcoral"),
-      round = 2
-    )
+      round = 2,
+      plot_legendbreaks = c(0.01, 0.1, 1, 5, 30)
+    ) +
+  theme(axis.text.x = element_text(angle = 45, size=10, vjust = 1),
+        axis.text.y = element_text(size=8),
+        legend.position="right", legend.direction="horizontal")
 ```
 
 
@@ -142,8 +148,10 @@ library(ggplot2)
 brayDist <- phyloseq::distance(physeq1_rel, method="bray")
 iMDS  <- ordinate(physeq1_rel)
 p = p + geom_point(aes(size=3, alpha = 0.6))
-Archaea <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier_GutArea") + theme_light() 
-Archaea = Archaea + geom_point(aes(size=3, alpha = 0.6)) + scale_color_manual(values = c('#001f30', '#1e5775', '#5ca0c4', '#93b5c7', '#3b1401','#8c370b', '#c28261', '#d6b3a1'))
+p <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier", shape = "GutArea") + theme_light() 
+Archaea = p + geom_point(aes(size=3, alpha = 0.9)) + scale_color_manual(values = c('#5ca0c4', '#8c370b'))
+Archaea = bacteria + scale_shape_manual(values = c(15, 16, 17, 8))+ labs(title="Bacteria") + theme(plot.title = element_text(color="black", size=14, face="bold", hjust = 0.5))
+
 ```
 
 ### AMPVIS2 (heatmap)
@@ -174,8 +182,12 @@ p = amp_heatmap(
       color_vector = c("royalblue3",
                    "whitesmoke",
                    "lightcoral"),
-      round = 2
-    )
+      round = 2, 
+      plot_legendbreaks = c(0.01, 0.1, 1, 10, 100)
+    ) +
+  theme(axis.text.x = element_text(angle = 45, size=10, vjust = 1),
+        axis.text.y = element_text(size=8),
+        legend.position="right", legend.direction="horizontal")
 ```
 
 # ITS
@@ -228,8 +240,9 @@ library(ggplot2)
 brayDist <- phyloseq::distance(physeq1_rel, method="bray")
 iMDS  <- ordinate(physeq1_rel)
 p = p + geom_point(aes(size=3, alpha = 0.6))
-Fungi <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier_GutArea") + theme_light() 
-Fungi = Fungi + geom_point(aes(size=3, alpha = 0.6)) + scale_color_manual(values = c('#001f30', '#1e5775', '#5ca0c4', '#93b5c7', '#3b1401','#8c370b', '#c28261', '#d6b3a1'))
+p <- plot_ordination(physeq_R6_rel, iMDS, color ="Supplier", shape = "GutArea") + theme_light() 
+Fungi = p + geom_point(aes(size=3, alpha = 0.9)) + scale_color_manual(values = c('#5ca0c4', '#8c370b'))
+Fungi = Fungi + scale_shape_manual(values = c(15, 16, 17, 8))+ labs(title="Bacteria") + theme(plot.title = element_text(color="black", size=14, face="bold", hjust = 0.5))
 ```
 
 ### AMPVIS2 (heatmap)
@@ -260,6 +273,12 @@ p = amp_heatmap(
       color_vector = c("royalblue3",
                    "whitesmoke",
                    "lightcoral"),
-      round = 2
-    )
+      round = 2,
+      plot_legendbreaks = c(0.01, 0.1, 1, 10, 100)
+    ) +
+  theme(axis.text.x = element_text(angle = 45, size=10, vjust = 1),
+        axis.text.y = element_text(size=8),
+        legend.position="right", legend.direction="horizontal")
+
+
 
