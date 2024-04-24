@@ -43,6 +43,43 @@ physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
 physeq1 = subset_taxa(physeq1, (Rank1 =="d__Bacteria"))
 ```
 
+### Alpha diversity
+```{r}
+library(dplyr)
+library(hillR)
+physeq1_rarefied = rarefy_even_depth(physeq1, rngseed = 711)
+physeq1_rel  = transform_sample_counts(physeq1_rarefied, function(x) x / sum(x)*100 )
+OTUdf = phyloseq_to_df(physeq1_rel, sorting = NULL)
+df_transpuesto <- OTUdf %>%
+  select(starts_with("L")) %>%
+  t() %>%
+  as.data.frame()
+otu <- df_transpuesto
+
+
+h0 <- as.data.frame(hill_taxa(df_transpuesto, q = 0, MARGIN = 1, base = exp(1)))
+h0$Sample_Name <- row.names(h0)
+h1 <- as.data.frame(hill_taxa(df_transpuesto, q = 1, MARGIN = 1, base = exp(1)))
+h1$Sample_Name <- row.names(h1)
+h2 <- as.data.frame(hill_taxa(df_transpuesto, q = 2, MARGIN = 1, base = exp(1)))
+h2$Sample_Name <- row.names(h2)
+
+hill_total <- merge(h0, h1, by = "Sample_Name")
+hill_total <- merge(hill_total, h2, by = "Sample_Name")
+colnames(hill_total) <- c("Sample", "Hill0","Hill 1 (exponential of Shannon’s entropy)", "Hill 2 (inverse Simpson index)")
+
+hill_total$Supplier = c("S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1")
+
+S1_data <- subset(hill_total, Supplier == "S1")$Hill0
+S2_data <- subset(hill_total, Supplier == "S2")$Hill0
+
+mean(S1_data)
+standard_error_S1 <- sd(S1_data) / sqrt(length(S1_data))
+
+mean(S2_data)
+standard_error_S1 <- sd(S2_data) / sqrt(length(S2_data))
+```
+
 ### PCoA
 
 #### ASV level
@@ -132,6 +169,43 @@ physeq1 = subset_taxa(physeq1, (Rank2 !="p__Vertebrata") | is.na(Rank2))
 physeq1 = subset_taxa(physeq1, (Rank5 !="f__Mitochondria") | is.na(Rank5))
 physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
 physeq1 = subset_taxa(physeq1, (Rank1 =="d__Archaea"))
+```
+
+### Alpha diversity
+```{r}
+library(dplyr)
+library(hillR)
+physeq1_rarefied = rarefy_even_depth(physeq1, rngseed = 711)
+physeq1_rel  = transform_sample_counts(physeq1_rarefied, function(x) x / sum(x)*100 )
+OTUdf = phyloseq_to_df(physeq1_rel, sorting = NULL)
+df_transpuesto <- OTUdf %>%
+  select(starts_with("L")) %>%
+  t() %>%
+  as.data.frame()
+otu <- df_transpuesto
+
+
+h0 <- as.data.frame(hill_taxa(df_transpuesto, q = 0, MARGIN = 1, base = exp(1)))
+h0$Sample_Name <- row.names(h0)
+h1 <- as.data.frame(hill_taxa(df_transpuesto, q = 1, MARGIN = 1, base = exp(1)))
+h1$Sample_Name <- row.names(h1)
+h2 <- as.data.frame(hill_taxa(df_transpuesto, q = 2, MARGIN = 1, base = exp(1)))
+h2$Sample_Name <- row.names(h2)
+
+hill_total <- merge(h0, h1, by = "Sample_Name")
+hill_total <- merge(hill_total, h2, by = "Sample_Name")
+colnames(hill_total) <- c("Sample", "Hill0","Hill 1 (exponential of Shannon’s entropy)", "Hill 2 (inverse Simpson index)")
+
+hill_total$Supplier = c("S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1")
+
+S1_data <- subset(hill_total, Supplier == "S1")$Hill0
+S2_data <- subset(hill_total, Supplier == "S2")$Hill0
+
+mean(S1_data)
+standard_error_S1 <- sd(S1_data) / sqrt(length(S1_data))
+
+mean(S2_data)
+standard_error_S1 <- sd(S2_data) / sqrt(length(S2_data))
 ```
 
 ### PCoA
@@ -224,6 +298,43 @@ physeq1 = subset_taxa(physeq1, (Rank2 !="p__Vertebrata") | is.na(Rank2))
 physeq1 = subset_taxa(physeq1, (Rank5 !="f__Mitochondria") | is.na(Rank5))
 physeq1 = subset_taxa(physeq1, (Rank4 !="o__Chloroplast") | is.na(Rank4))
 physeq1 = subset_taxa(physeq1, (Rank1 =="d__Fungi"))
+```
+
+### Alpha diversity
+```{r}
+library(dplyr)
+library(hillR)
+physeq1_rarefied = rarefy_even_depth(physeq1, rngseed = 711)
+physeq1_rel  = transform_sample_counts(physeq1_rarefied, function(x) x / sum(x)*100 )
+OTUdf = phyloseq_to_df(physeq1_rel, sorting = NULL)
+df_transpuesto <- OTUdf %>%
+  select(starts_with("L")) %>%
+  t() %>%
+  as.data.frame()
+otu <- df_transpuesto
+
+
+h0 <- as.data.frame(hill_taxa(df_transpuesto, q = 0, MARGIN = 1, base = exp(1)))
+h0$Sample_Name <- row.names(h0)
+h1 <- as.data.frame(hill_taxa(df_transpuesto, q = 1, MARGIN = 1, base = exp(1)))
+h1$Sample_Name <- row.names(h1)
+h2 <- as.data.frame(hill_taxa(df_transpuesto, q = 2, MARGIN = 1, base = exp(1)))
+h2$Sample_Name <- row.names(h2)
+
+hill_total <- merge(h0, h1, by = "Sample_Name")
+hill_total <- merge(hill_total, h2, by = "Sample_Name")
+colnames(hill_total) <- c("Sample", "Hill0","Hill 1 (exponential of Shannon’s entropy)", "Hill 2 (inverse Simpson index)")
+
+hill_total$Supplier = c("S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S2", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1", "S1")
+
+S1_data <- subset(hill_total, Supplier == "S1")$Hill0
+S2_data <- subset(hill_total, Supplier == "S2")$Hill0
+
+mean(S1_data)
+standard_error_S1 <- sd(S1_data) / sqrt(length(S1_data))
+
+mean(S2_data)
+standard_error_S1 <- sd(S2_data) / sqrt(length(S2_data))
 ```
 
 ### PCoA
